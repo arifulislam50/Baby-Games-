@@ -1,0 +1,41 @@
+name: Build Android APK
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Free disk space
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: false
+          swap-storage: true
+
+      - uses: actions/checkout@v4
+
+      - name: Unpack project ZIP
+        run: unzip -q TinyWorldAdventure_Phase1.zip -d unpacked
+
+      - name: Cache Unity Library
+        uses: actions/cache@v4
+        with:
+          path: unpacked/TinyWorldAdventure/Library
+          key: Library-Android-${{ hashFiles('unpacked/TinyWorldAdventure/Assets/**', 'unpacked/TinyWorldAdventure/Packages/manifest.json') }}
+          restore-keys: Library-Android-
+
+      - name: Build APK
+        uses: game-ci/unity-builder@v6
+        env:
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: unpacked/TinyWorldAdventure
+          targetPlatform: Android
+          unityVersion: auto
+          androidEx
